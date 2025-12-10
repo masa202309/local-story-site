@@ -7,7 +7,6 @@ async function getStory(id: string) {
     .from("stories")
     .select(`*, shops(*)`)
     .eq("id", id)
-    .eq("published", true)
     .single();
 
   if (error || !data) return null;

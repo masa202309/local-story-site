@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase, Shop } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
+import { uploadStoryImage } from '@/lib/storyImages';
 
 export default function EditPostPage() {
   const router = useRouter();
@@ -18,6 +19,9 @@ export default function EditPostPage() {
   const [content, setContent] = useState('');
   const [authorName, setAuthorName] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string>('');
+  const [removeImage, setRemoveImage] = useState(false);
   const [currentPublished, setCurrentPublished] = useState(false);
 
   const [pageLoading, setPageLoading] = useState(true);
@@ -33,6 +37,16 @@ export default function EditPostPage() {
 
     fetchShops();
   }, []);
+
+  useEffect(() => {
+    if (!imageFile) {
+      setImagePreviewUrl('');
+      return;
+    }
+    const objectUrl = URL.createObjectURL(imageFile);
+    setImagePreviewUrl(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [imageFile]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -68,6 +82,8 @@ export default function EditPostPage() {
       setContent(data.content);
       setAuthorName(data.author_name || '');
       setImageUrl(data.image_url || '');
+      setImageFile(null);
+      setRemoveImage(false);
       setCurrentPublished(data.published);
       setPageLoading(false);
     };
@@ -96,6 +112,13 @@ export default function EditPostPage() {
     setError('');
 
     try {
+      let nextImageUrl: string | null = null;
+      if (!removeImage && imageUrl) nextImageUrl = imageUrl;
+      if (imageFile) {
+        const { publicUrl } = await uploadStoryImage({ file: imageFile, userId: user.id });
+        nextImageUrl = publicUrl;
+      }
+
       const { error: updateError } = await supabase
         .from('stories')
         .update({
@@ -104,7 +127,7 @@ export default function EditPostPage() {
           content,
           excerpt: generateExcerpt(content),
           author_name: authorName || '匿名',
-          image_url: imageUrl || null,
+          image_url: nextImageUrl,
           published: nextPublished,
         })
         .eq('id', storyId)
@@ -234,21 +257,78 @@ export default function EditPostPage() {
             </p>
           </div>
 
-          {/* 画像URL */}
+          {/* 画像アップロード */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              画像URL（任意）
+              画像（任意）
             </label>
             <input
-              type="url"
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              placeholder="https://example.com/image.jpg"
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files?.[0] ?? null;
+                if (!file) {
+                  setImageFile(null);
+                  return;
+                }
+                if (!file.type.startsWith('image/')) {
+                  setError('画像ファイルを選択してください');
+                  e.target.value = '';
+                  setImageFile(null);
+                  return;
+                }
+                if (file.size > 5 * 1024 * 1024) {
+                  setError('画像は5MB以下にしてください');
+                  e.target.value = '';
+                  setImageFile(null);
+                  return;
+                }
+                setError('');
+                setRemoveImage(false);
+                setImageFile(file);
+              }}
               className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-transparent"
             />
             <p className="text-xs text-gray-500 mt-1">
-              ※ 画像アップロード機能は今後追加予定です
+              JPG/PNG/WebP など（最大 5MB）
             </p>
+            {(imagePreviewUrl || imageUrl) && !removeImage && (
+              <div className="mt-3">
+                <img
+                  src={imagePreviewUrl || imageUrl}
+                  alt="画像プレビュー"
+                  className="w-full max-h-64 object-cover rounded-lg border border-gray-100"
+                />
+                <div className="mt-2 flex items-center gap-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setImageFile(null);
+                      setImagePreviewUrl('');
+                    }}
+                    className="text-sm text-gray-600 hover:text-amber-600"
+                  >
+                    選択中の画像を外す
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRemoveImage(true);
+                      setImageFile(null);
+                      setImageUrl('');
+                    }}
+                    className="text-sm text-red-500 hover:text-red-600"
+                  >
+                    画像を削除
+                  </button>
+                </div>
+              </div>
+            )}
+            {removeImage && (
+              <p className="text-xs text-red-600 mt-2">
+                画像は削除されます（保存後に反映）
+              </p>
+            )}
           </div>
 
           {/* ボタン */}

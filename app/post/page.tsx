@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase, Shop } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
+import { uploadStoryImage } from '@/lib/storyImages';
 
 export default function PostPage() {
   const router = useRouter();
@@ -15,7 +16,8 @@ export default function PostPage() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [authorName, setAuthorName] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -27,6 +29,16 @@ export default function PostPage() {
     }
     fetchShops();
   }, []);
+
+  useEffect(() => {
+    if (!imageFile) {
+      setImagePreviewUrl('');
+      return;
+    }
+    const objectUrl = URL.createObjectURL(imageFile);
+    setImagePreviewUrl(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [imageFile]);
 
   // 未ログインならリダイレクト
   useEffect(() => {
@@ -52,13 +64,24 @@ export default function PostPage() {
     setError('');
 
     try {
+      let imageUrl: string | null = null;
+      if (imageFile) {
+        if (!user) {
+          setError('ログイン情報が取得できませんでした');
+          setLoading(false);
+          return;
+        }
+        const { publicUrl } = await uploadStoryImage({ file: imageFile, userId: user.id });
+        imageUrl = publicUrl;
+      }
+
       const { error: insertError } = await supabase.from('stories').insert({
         shop_id: shopId,
         title,
         content,
         excerpt: generateExcerpt(content),
         author_name: authorName || '匿名',
-        image_url: imageUrl || null,
+        image_url: imageUrl,
         user_id: user?.id,
         published,
       });
@@ -178,21 +201,56 @@ export default function PostPage() {
             </p>
           </div>
 
-          {/* 画像URL */}
+          {/* 画像アップロード */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              画像URL（任意）
+              画像（任意）
             </label>
             <input
-              type="url"
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              placeholder="https://example.com/image.jpg"
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files?.[0] ?? null;
+                if (!file) {
+                  setImageFile(null);
+                  return;
+                }
+                if (!file.type.startsWith('image/')) {
+                  setError('画像ファイルを選択してください');
+                  e.target.value = '';
+                  setImageFile(null);
+                  return;
+                }
+                if (file.size > 5 * 1024 * 1024) {
+                  setError('画像は5MB以下にしてください');
+                  e.target.value = '';
+                  setImageFile(null);
+                  return;
+                }
+                setError('');
+                setImageFile(file);
+              }}
               className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-transparent"
             />
             <p className="text-xs text-gray-500 mt-1">
-              ※ 画像アップロード機能は今後追加予定です
+              JPG/PNG/WebP など（最大 5MB）
             </p>
+            {imagePreviewUrl && (
+              <div className="mt-3">
+                <img
+                  src={imagePreviewUrl}
+                  alt="選択中の画像プレビュー"
+                  className="w-full max-h-64 object-cover rounded-lg border border-gray-100"
+                />
+                <button
+                  type="button"
+                  onClick={() => setImageFile(null)}
+                  className="mt-2 text-sm text-gray-600 hover:text-amber-600"
+                >
+                  画像を外す
+                </button>
+              </div>
+            )}
           </div>
 
           {/* ボタン */}

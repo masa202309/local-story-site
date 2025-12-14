@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase, Story } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
+import { ensureSignedStoryImageUrl } from '@/lib/storyImages';
 
 export default function MyPage() {
   const router = useRouter();
@@ -29,7 +30,15 @@ export default function MyPage() {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (data) setStories(data);
+      if (data) {
+        const withSigned = await Promise.all(
+          data.map(async (story) => ({
+            ...story,
+            image_url: await ensureSignedStoryImageUrl(story.image_url),
+          }))
+        );
+        setStories(withSigned as Story[]);
+      }
       setLoading(false);
     }
 

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase, Shop } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
-import { uploadStoryImage } from '@/lib/storyImages';
+import { uploadStoryImage, ensureSignedStoryImageUrl } from '@/lib/storyImages';
 
 export default function EditPostPage() {
   const router = useRouter();
@@ -81,7 +81,8 @@ export default function EditPostPage() {
       setTitle(data.title);
       setContent(data.content);
       setAuthorName(data.author_name || '');
-      setImageUrl(data.image_url || '');
+      const signedUrl = await ensureSignedStoryImageUrl(data.image_url);
+      setImageUrl(signedUrl || '');
       setImageFile(null);
       setRemoveImage(false);
       setCurrentPublished(data.published);

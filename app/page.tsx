@@ -1,6 +1,7 @@
 import { supabase, Story } from "@/lib/supabase";
 import Link from "next/link";
 import Header from "@/components/Header";
+import { ensureSignedStoryImageUrl } from "@/lib/storyImages";
 
 // データ取得
 async function getStories() {
@@ -14,7 +15,15 @@ async function getStories() {
     console.error("Error fetching stories:", error);
     return [];
   }
-  return data as Story[];
+  const stories = (data || []) as Story[];
+  const withSignedImages = await Promise.all(
+    stories.map(async (story) => ({
+      ...story,
+      image_url: await ensureSignedStoryImageUrl(story.image_url),
+    }))
+  );
+
+  return withSignedImages;
 }
 
 async function getAreas() {

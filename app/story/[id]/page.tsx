@@ -2,6 +2,7 @@ import { supabase, Story } from "@/lib/supabase";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ReactionButtons } from "@/components/ReactionButtons";
+import { ensureSignedStoryImageUrl } from "@/lib/storyImages";
 
 async function getStory(id: string) {
   const { data, error } = await supabase
@@ -11,7 +12,11 @@ async function getStory(id: string) {
     .single();
 
   if (error || !data) return null;
-  return data as Story;
+  const story = data as Story;
+  return {
+    ...story,
+    image_url: await ensureSignedStoryImageUrl(story.image_url),
+  };
 }
 
 export default async function StoryPage({

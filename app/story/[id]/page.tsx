@@ -1,6 +1,7 @@
 import { supabase, Story } from "@/lib/supabase";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ReactionButtons } from "@/components/ReactionButtons";
 
 async function getStory(id: string) {
   const { data, error } = await supabase
@@ -92,22 +93,17 @@ export default async function StoryPage({
             <p key={i} className="text-gray-700 leading-relaxed mb-4">
               {para}
             </p>
-          ))}
-        </div>
+        ))}
+      </div>
 
-        {/* リアクション */}
-        <div className="flex flex-wrap items-center gap-3 py-4 border-t border-b border-gray-100 mb-6">
-          <span className="text-sm text-gray-500 mr-2">この物語に</span>
-          <button className="flex items-center gap-1 px-4 py-2 bg-amber-50 rounded-full text-sm text-amber-700 hover:bg-amber-100 transition">
-            📍 行きたい {story.reactions_visit}
-          </button>
-          <button className="flex items-center gap-1 px-4 py-2 bg-pink-50 rounded-full text-sm text-pink-700 hover:bg-pink-100 transition">
-            😢 泣けた {story.reactions_touched}
-          </button>
-          <button className="flex items-center gap-1 px-4 py-2 bg-orange-50 rounded-full text-sm text-orange-700 hover:bg-orange-100 transition">
-            ☕ ほっこり {story.reactions_warm}
-          </button>
-        </div>
+      <ReactionButtons
+        storyId={story.id}
+        initialCounts={{
+          visit: story.reactions_visit,
+          touched: story.reactions_touched,
+          warm: story.reactions_warm,
+        }}
+      />
 
         {/* 店舗情報 */}
         <div className="bg-amber-50 rounded-xl p-5">

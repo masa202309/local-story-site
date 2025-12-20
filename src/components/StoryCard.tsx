@@ -9,6 +9,10 @@ interface StoryCardProps {
 }
 
 export default function StoryCard({ story, featured = false }: StoryCardProps) {
+  const shopName = story.custom_shop_name || story.shop?.name || "店名不明";
+  const shopArea = story.custom_area || story.shop?.area || "エリア不明";
+  const shopGenre = story.custom_genre || story.shop?.genre || "ジャンル不明";
+
   return (
     <Link href={`/story/${story.id}`}>
       <article
@@ -20,7 +24,7 @@ export default function StoryCard({ story, featured = false }: StoryCardProps) {
           {story.image_url ? (
             <Image
               src={story.image_url}
-              alt={story.shop?.name || "店舗画像"}
+              alt={shopName || "店舗画像"}
               width={400}
               height={featured ? 300 : 160}
               className={`w-full object-cover ${featured ? "h-48 md:h-full" : "h-40"}`}
@@ -34,9 +38,9 @@ export default function StoryCard({ story, featured = false }: StoryCardProps) {
         <div className={`p-4 ${featured ? "md:w-3/5 md:p-6" : ""}`}>
           <div className="flex items-center gap-2 text-xs text-amber-600 mb-2">
             <span className="bg-amber-100 px-2 py-0.5 rounded">
-              {story.shop?.area || "エリア不明"}
+              {shopArea}
             </span>
-            <span>{story.shop?.genre || "ジャンル不明"}</span>
+            <span>{shopGenre}</span>
           </div>
           <h3
             className={`font-bold text-gray-900 mb-2 ${
@@ -51,7 +55,7 @@ export default function StoryCard({ story, featured = false }: StoryCardProps) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-xs text-gray-500">
               <Store className="w-3 h-3" />
-              <span>{story.shop?.name || "店名不明"}</span>
+              <span>{shopName}</span>
             </div>
             <div className="flex items-center gap-3 text-xs text-gray-400">
               <span className="flex items-center gap-1">

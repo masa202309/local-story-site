@@ -15,7 +15,10 @@ export default function HomeClient({ stories, areas }: HomeClientProps) {
   const filteredStories =
     selectedArea === "すべて"
       ? stories
-      : stories.filter((story) => story.shop?.area === selectedArea);
+      : stories.filter(
+          (story) =>
+            (story.custom_area || story.shop?.area || "") === selectedArea
+        );
 
   const featuredStory = filteredStories[0];
   const otherStories = filteredStories.slice(1);

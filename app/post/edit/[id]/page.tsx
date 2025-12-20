@@ -14,7 +14,9 @@ export default function EditPostPage() {
   const { user, loading: authLoading } = useAuth();
 
   const [shops, setShops] = useState<Shop[]>([]);
-  const [shopId, setShopId] = useState('');
+  const [customShopName, setCustomShopName] = useState('');
+  const [customArea, setCustomArea] = useState('');
+  const [customGenre, setCustomGenre] = useState('');
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [authorName, setAuthorName] = useState('');
@@ -66,7 +68,7 @@ export default function EditPostPage() {
       setPageLoading(true);
       const { data, error: fetchError } = await supabase
         .from('stories')
-        .select('*')
+        .select('*, shops(*)')
         .eq('id', storyId)
         .eq('user_id', user.id)
         .single();
@@ -77,7 +79,9 @@ export default function EditPostPage() {
         return;
       }
 
-      setShopId(data.shop_id);
+      setCustomShopName(data.custom_shop_name || data.shops?.name || '');
+      setCustomArea(data.custom_area || data.shops?.area || '');
+      setCustomGenre(data.custom_genre || data.shops?.genre || '');
       setTitle(data.title);
       setContent(data.content);
       setAuthorName(data.author_name || '');
@@ -100,8 +104,12 @@ export default function EditPostPage() {
   };
 
   const handleSubmit = async (nextPublished: boolean) => {
-    if (!shopId || !title || !content) {
-      setError('店舗、タイトル、本文は必須です');
+    const trimmedShopName = customShopName.trim();
+    const trimmedArea = customArea.trim();
+    const trimmedGenre = customGenre.trim();
+
+    if (!trimmedShopName || !trimmedArea || !trimmedGenre || !title || !content) {
+      setError('店名、エリア、ジャンル、タイトル、本文は必須です');
       return;
     }
     if (!storyId || !user) {
@@ -120,10 +128,20 @@ export default function EditPostPage() {
         nextImageUrl = publicUrl;
       }
 
+      const matchedShop = shops.find(
+        (shop) =>
+          shop.name === trimmedShopName &&
+          shop.area === trimmedArea &&
+          shop.genre === trimmedGenre
+      );
+
       const { error: updateError } = await supabase
         .from('stories')
         .update({
-          shop_id: shopId,
+          shop_id: matchedShop?.id ?? null,
+          custom_shop_name: trimmedShopName,
+          custom_area: trimmedArea,
+          custom_genre: trimmedGenre,
           title,
           content,
           excerpt: generateExcerpt(content),
@@ -194,23 +212,62 @@ export default function EditPostPage() {
         )}
 
         <div className="bg-white rounded-xl shadow-sm p-6 space-y-6">
-          {/* 店舗選択 */}
+          {/* 店舗情報 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              お店を選ぶ <span className="text-red-500">*</span>
+              店名 <span className="text-red-500">*</span>
             </label>
-            <select
-              value={shopId}
-              onChange={(e) => setShopId(e.target.value)}
+            <input
+              type="text"
+              list="edit-shop-name-list"
+              value={customShopName}
+              onChange={(e) => setCustomShopName(e.target.value)}
+              placeholder="例: 喫茶みどり"
               className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-transparent"
-            >
-              <option value="">選択してください</option>
-              {shops.map((shop) => (
-                <option key={shop.id} value={shop.id}>
-                  {shop.name}（{shop.area}・{shop.genre}）
-                </option>
+            />
+            <datalist id="edit-shop-name-list">
+              {Array.from(new Set(shops.map((shop) => shop.name))).map((name) => (
+                <option key={name} value={name} />
               ))}
-            </select>
+            </datalist>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                エリア <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                list="edit-shop-area-list"
+                value={customArea}
+                onChange={(e) => setCustomArea(e.target.value)}
+                placeholder="例: 下町"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+              />
+              <datalist id="edit-shop-area-list">
+                {Array.from(new Set(shops.map((shop) => shop.area))).map((area) => (
+                  <option key={area} value={area} />
+                ))}
+              </datalist>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                ジャンル <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                list="edit-shop-genre-list"
+                value={customGenre}
+                onChange={(e) => setCustomGenre(e.target.value)}
+                placeholder="例: 喫茶店"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+              />
+              <datalist id="edit-shop-genre-list">
+                {Array.from(new Set(shops.map((shop) => shop.genre))).map((genre) => (
+                  <option key={genre} value={genre} />
+                ))}
+              </datalist>
+            </div>
           </div>
 
           {/* タイトル */}

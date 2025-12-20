@@ -18,6 +18,9 @@ export default function StoryDetail({ story }: StoryDetailProps) {
       day: "2-digit",
     }).replace(/\//g, ".");
   };
+  const shopName = story.custom_shop_name || story.shop?.name || "店名不明";
+  const shopArea = story.custom_area || story.shop?.area || "エリア不明";
+  const shopGenre = story.custom_genre || story.shop?.genre || "ジャンル不明";
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
@@ -33,7 +36,7 @@ export default function StoryDetail({ story }: StoryDetailProps) {
       {story.image_url ? (
         <Image
           src={story.image_url}
-          alt={story.shop?.name || "店舗画像"}
+          alt={shopName || "店舗画像"}
           width={800}
           height={400}
           className="w-full h-64 object-cover rounded-xl mb-6"
@@ -48,9 +51,9 @@ export default function StoryDetail({ story }: StoryDetailProps) {
       <div className="mb-6">
         <div className="flex items-center gap-2 text-sm text-amber-600 mb-3">
           <span className="bg-amber-100 px-2 py-1 rounded">
-            {story.shop?.area}
+            {shopArea}
           </span>
-          <span>{story.shop?.genre}</span>
+          <span>{shopGenre}</span>
         </div>
         <h1 className="text-2xl font-bold text-gray-900 mb-3">{story.title}</h1>
         <div className="flex items-center gap-4 text-sm text-gray-500">
@@ -89,7 +92,7 @@ export default function StoryDetail({ story }: StoryDetailProps) {
       <div className="bg-amber-50 rounded-xl p-5">
         <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
           <Store className="w-5 h-5 text-amber-600" />
-          {story.shop?.name}
+          {shopName}
         </h3>
         <div className="text-sm text-gray-600 space-y-2">
           <p className="flex items-center gap-2">

@@ -36,6 +36,9 @@ export default async function StoryPage({
     month: "long",
     day: "numeric",
   });
+  const shopName = story.custom_shop_name || story.shops?.name || "";
+  const shopArea = story.custom_area || story.shops?.area || "";
+  const shopGenre = story.custom_genre || story.shops?.genre || "";
 
   return (
     <div className="min-h-screen bg-stone-50">
@@ -68,7 +71,7 @@ export default async function StoryPage({
         {/* メイン画像 */}
         <img
           src={story.image_url || "/placeholder.jpg"}
-          alt={story.shops?.name || ""}
+          alt={shopName || "店舗画像"}
           className="w-full h-64 object-cover rounded-xl mb-6"
         />
 
@@ -76,9 +79,9 @@ export default async function StoryPage({
         <div className="mb-6">
           <div className="flex items-center gap-2 text-sm text-amber-600 mb-3">
             <span className="bg-amber-100 px-2 py-1 rounded">
-              {story.shops?.area}
+              {shopArea}
             </span>
-            <span>{story.shops?.genre}</span>
+            <span>{shopGenre}</span>
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-3">{story.title}</h1>
           <div className="flex items-center gap-4 text-sm text-gray-500">
@@ -116,7 +119,7 @@ export default async function StoryPage({
             <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
             </svg>
-            {story.shops?.name}
+            {shopName || "店名未登録"}
           </h3>
           <div className="text-sm text-gray-600 space-y-2">
             <p className="flex items-center gap-2">

@@ -172,7 +172,8 @@ export default function MyPage() {
                       {story.title}
                     </h3>
                     <p className="text-sm text-gray-500">
-                      {story.shops?.name}（{story.shops?.area}）
+                      {story.custom_shop_name || story.shops?.name || "店名未登録"}（
+                      {story.custom_area || story.shops?.area || "エリア未登録"}）
                     </p>
                   </div>
                   {story.image_url && (

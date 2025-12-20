@@ -19,7 +19,10 @@ export type Shop = {
 
 export type Story = {
   id: string;
-  shop_id: string;
+  shop_id: string | null;
+  custom_shop_name: string | null;
+  custom_area: string | null;
+  custom_genre: string | null;
   title: string;
   content: string;
   excerpt: string | null;

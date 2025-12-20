@@ -12,6 +12,8 @@ export default function StoryCard({ story, featured = false }: StoryCardProps) {
   const shopName = story.custom_shop_name || story.shop?.name || "店名不明";
   const shopArea = story.custom_area || story.shop?.area || "エリア不明";
   const shopGenre = story.custom_genre || story.shop?.genre || "ジャンル不明";
+  const totalReactions =
+    story.reactions_visit + story.reactions_touched + story.reactions_warm;
 
   return (
     <Link href={`/story/${story.id}`}>
@@ -59,7 +61,7 @@ export default function StoryCard({ story, featured = false }: StoryCardProps) {
             </div>
             <div className="flex items-center gap-3 text-xs text-gray-400">
               <span className="flex items-center gap-1">
-                <Heart className="w-3 h-3" /> {story.reactions_warm}
+                <Heart className="w-3 h-3" /> {totalReactions}
               </span>
             </div>
           </div>

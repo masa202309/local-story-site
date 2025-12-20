@@ -45,6 +45,10 @@ function getStoryShop(story: Story) {
   };
 }
 
+function getTotalReactions(story: Story) {
+  return story.reactions_visit + story.reactions_touched + story.reactions_warm;
+}
+
 export const revalidate = 60; // 60秒ごとに再検証
 
 export default async function Home() {
@@ -133,7 +137,7 @@ export default async function Home() {
                     </div>
                     <div className="flex items-center gap-3 text-xs text-gray-400">
                       <span className="flex items-center gap-1">
-                        ❤️ {featuredStory.reactions_warm}
+                        ❤️ {getTotalReactions(featuredStory)}
                       </span>
                     </div>
                   </div>
@@ -170,7 +174,7 @@ export default async function Home() {
                           <span>{getStoryShop(story).name}</span>
                         </div>
                         <span className="text-xs text-gray-400">
-                          ❤️ {story.reactions_warm}
+                          ❤️ {getTotalReactions(story)}
                         </span>
                       </div>
                     </div>

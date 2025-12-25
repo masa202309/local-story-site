@@ -2,7 +2,7 @@
 
 import { MapPin } from "lucide-react";
 
-const areas = ["駅前", "本町", "南町", "中央", "北区"];
+const areas = ["横浜", "湘南", "東京", "神奈川", "北区"];
 
 interface HeroProps {
   onAreaSelect: (area: string) => void;

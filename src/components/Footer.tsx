@@ -6,7 +6,7 @@ export default function Footer() {
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center gap-2 mb-4">
           <BookOpen className="w-6 h-6" />
-          <span className="font-bold">わが町の名店</span>
+          <span className="font-bold">TABLE NOVEL</span>
         </div>
         <p className="text-sm text-amber-300 mb-6">
           地元の名店で生まれた物語を集めるプラットフォーム

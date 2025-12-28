@@ -25,7 +25,7 @@ export default function Header() {
               </svg>
             </div>
             <div>
-              <h1 className="text-lg font-bold text-amber-900">わが町の名店</h1>
+              <h1 className="text-lg font-bold text-amber-900">TABLE NOVEL</h1>
               <p className="text-xs text-amber-600">ストーリーで巡る、心の地図</p>
             </div>
           </Link>

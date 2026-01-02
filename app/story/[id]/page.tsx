@@ -129,6 +129,21 @@ export default async function StoryPage({
               </svg>
               {story.shops?.address || "住所未登録"}
             </p>
+            {story.shop_url && (
+              <p className="flex items-center gap-2">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 010 5.656m-3.656-5.656a4 4 0 015.656 0m-7.071 7.071a6 6 0 018.485-8.485" />
+                </svg>
+                <a
+                  href={story.shop_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-amber-700 hover:underline break-all"
+                >
+                  {story.shop_url}
+                </a>
+              </p>
+            )}
           </div>
         </div>
 

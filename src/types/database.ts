@@ -20,6 +20,7 @@ export interface Story {
   excerpt: string | null
   author_name: string
   image_url: string | null
+  shop_url: string | null
   reactions_visit: number
   reactions_touched: number
   reactions_warm: number

@@ -15,6 +15,7 @@ export default function PostPage() {
   const [customShopName, setCustomShopName] = useState('');
   const [customArea, setCustomArea] = useState('');
   const [customGenre, setCustomGenre] = useState('');
+  const [shopUrl, setShopUrl] = useState('');
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [authorName, setAuthorName] = useState('');
@@ -56,13 +57,27 @@ export default function PostPage() {
       : firstParagraph;
   };
 
+  const isValidHttpUrl = (value: string) => {
+    try {
+      const url = new URL(value);
+      return url.protocol === 'http:' || url.protocol === 'https:';
+    } catch {
+      return false;
+    }
+  };
+
   const handleSubmit = async (published: boolean) => {
     const trimmedShopName = customShopName.trim();
     const trimmedArea = customArea.trim();
     const trimmedGenre = customGenre.trim();
+    const trimmedShopUrl = shopUrl.trim();
 
     if (!trimmedShopName || !trimmedArea || !trimmedGenre || !title || !content) {
       setError('店名、エリア、ジャンル、タイトル、本文は必須です');
+      return;
+    }
+    if (trimmedShopUrl && !isValidHttpUrl(trimmedShopUrl)) {
+      setError('お店紹介URLはhttp/httpsで入力してください');
       return;
     }
 
@@ -98,6 +113,7 @@ export default function PostPage() {
         excerpt: generateExcerpt(content),
         author_name: authorName || '匿名',
         image_url: imageUrl,
+        shop_url: trimmedShopUrl || null,
         user_id: user?.id,
         published,
       });
@@ -209,6 +225,23 @@ export default function PostPage() {
                 ))}
               </datalist>
             </div>
+          </div>
+
+          {/* お店紹介URL */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              お店紹介URL <span className="text-gray-400">(任意)</span>
+            </label>
+            <input
+              type="url"
+              value={shopUrl}
+              onChange={(e) => setShopUrl(e.target.value)}
+              placeholder="https://example.com"
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              URLは http または https から始めてください
+            </p>
           </div>
 
           {/* タイトル */}

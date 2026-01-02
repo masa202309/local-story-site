@@ -17,6 +17,7 @@ export default function EditPostPage() {
   const [customShopName, setCustomShopName] = useState('');
   const [customArea, setCustomArea] = useState('');
   const [customGenre, setCustomGenre] = useState('');
+  const [shopUrl, setShopUrl] = useState('');
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [authorName, setAuthorName] = useState('');
@@ -82,6 +83,7 @@ export default function EditPostPage() {
       setCustomShopName(data.custom_shop_name || data.shops?.name || '');
       setCustomArea(data.custom_area || data.shops?.area || '');
       setCustomGenre(data.custom_genre || data.shops?.genre || '');
+      setShopUrl(data.shop_url || '');
       setTitle(data.title);
       setContent(data.content);
       setAuthorName(data.author_name || '');
@@ -103,13 +105,27 @@ export default function EditPostPage() {
       : firstParagraph;
   };
 
+  const isValidHttpUrl = (value: string) => {
+    try {
+      const url = new URL(value);
+      return url.protocol === 'http:' || url.protocol === 'https:';
+    } catch {
+      return false;
+    }
+  };
+
   const handleSubmit = async (nextPublished: boolean) => {
     const trimmedShopName = customShopName.trim();
     const trimmedArea = customArea.trim();
     const trimmedGenre = customGenre.trim();
+    const trimmedShopUrl = shopUrl.trim();
 
     if (!trimmedShopName || !trimmedArea || !trimmedGenre || !title || !content) {
       setError('店名、エリア、ジャンル、タイトル、本文は必須です');
+      return;
+    }
+    if (trimmedShopUrl && !isValidHttpUrl(trimmedShopUrl)) {
+      setError('お店紹介URLはhttp/httpsで入力してください');
       return;
     }
     if (!storyId || !user) {
@@ -147,6 +163,7 @@ export default function EditPostPage() {
           excerpt: generateExcerpt(content),
           author_name: authorName || '匿名',
           image_url: nextImageUrl,
+          shop_url: trimmedShopUrl || null,
           published: nextPublished,
         })
         .eq('id', storyId)
@@ -268,6 +285,23 @@ export default function EditPostPage() {
                 ))}
               </datalist>
             </div>
+          </div>
+
+          {/* お店紹介URL */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              お店紹介URL <span className="text-gray-400">(任意)</span>
+            </label>
+            <input
+              type="url"
+              value={shopUrl}
+              onChange={(e) => setShopUrl(e.target.value)}
+              placeholder="https://example.com"
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              URLは http または https から始めてください
+            </p>
           </div>
 
           {/* タイトル */}

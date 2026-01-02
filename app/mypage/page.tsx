@@ -175,6 +175,16 @@ export default function MyPage() {
                       {story.custom_shop_name || story.shops?.name || "店名未登録"}（
                       {story.custom_area || story.shops?.area || "エリア未登録"}）
                     </p>
+                    {story.shop_url && (
+                      <a
+                        href={story.shop_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-1 inline-block text-xs text-amber-700 hover:underline break-all"
+                      >
+                        {story.shop_url}
+                      </a>
+                    )}
                   </div>
                   {story.image_url && (
                     <img

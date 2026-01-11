@@ -3,15 +3,24 @@ import Link from "next/link";
 import Image from "next/image";
 import Header from "@/components/Header";
 import { ensureSignedStoryImageUrl } from "@/lib/storyImages";
+import { SearchForm } from "@/components";
 
 // データ取得
-async function getStories(page: number, pageSize: number) {
+async function getStories(page: number, pageSize: number, searchQuery?: string) {
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
-  const { data, error, count } = await supabase
+
+  let query = supabase
     .from("stories")
     .select(`*, shops(*)`, { count: "exact" })
-    .eq("published", true)
+    .eq("published", true);
+
+  // 検索クエリがある場合はフィルタリング（タイトル、店名、エリア）
+  if (searchQuery) {
+    query = query.or(`title.ilike.%${searchQuery}%,custom_shop_name.ilike.%${searchQuery}%,custom_area.ilike.%${searchQuery}%`);
+  }
+
+  const { data, error, count } = await query
     .order("created_at", { ascending: false })
     .range(from, to);
 
@@ -58,15 +67,18 @@ export const revalidate = 60; // 60秒ごとに再検証
 export default async function Home({
   searchParams,
 }: {
-  searchParams?: Promise<{ page?: string | string[] }>;
+  searchParams?: Promise<{ page?: string | string[]; q?: string | string[] }>;
 }) {
   const resolvedParams = searchParams ? await searchParams : undefined;
   const pageParam = Array.isArray(resolvedParams?.page)
     ? resolvedParams?.page[0]
     : resolvedParams?.page;
   const page = Math.max(1, Number.parseInt(pageParam ?? "1", 10) || 1);
+  const searchQuery = Array.isArray(resolvedParams?.q)
+    ? resolvedParams?.q[0]
+    : resolvedParams?.q;
   const pageSize = 10;
-  const { stories, total } = await getStories(page, pageSize);
+  const { stories, total } = await getStories(page, pageSize, searchQuery);
   const areas = await getAreas();
   const featuredStory = stories[0];
   const featuredShop = featuredStory ? getStoryShop(featuredStory) : null;
@@ -89,7 +101,7 @@ export default async function Home({
           <p className="text-amber-700 mb-8">
             地元の名店で生まれた思い出を、ショートストーリーで共有しよう
           </p>
-          <div className="flex flex-wrap justify-center gap-2">
+          <div className="flex flex-wrap justify-center gap-2 mb-8">
             {areas.map((area) => (
               <span
                 key={area}
@@ -103,16 +115,36 @@ export default async function Home({
               </span>
             ))}
           </div>
+          <SearchForm />
         </div>
       </div>
 
       {/* ストーリー一覧 */}
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">新着ストーリー</h2>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-bold text-gray-900">
+            {searchQuery ? `「${searchQuery}」の検索結果` : "新着ストーリー"}
+          </h2>
+          {searchQuery && (
+            <span className="text-sm text-gray-500">{total}件</span>
+          )}
+        </div>
 
         {!hasStories ? (
           <div className="bg-white rounded-xl p-12 text-center">
-            {total === 0 ? (
+            {searchQuery ? (
+              <>
+                <p className="text-gray-500 mb-4">
+                  「{searchQuery}」に一致するストーリーが見つかりませんでした
+                </p>
+                <Link
+                  href="/"
+                  className="inline-flex items-center gap-2 text-amber-600 hover:underline"
+                >
+                  すべてのストーリーを見る →
+                </Link>
+              </>
+            ) : total === 0 ? (
               <>
                 <p className="text-gray-500 mb-4">まだストーリーがありません</p>
                 <Link
@@ -225,7 +257,7 @@ export default async function Home({
           <div className="flex items-center justify-center gap-4 mt-8">
             {page > 1 ? (
               <Link
-                href={`/?page=${page - 1}`}
+                href={`/?page=${page - 1}${searchQuery ? `&q=${encodeURIComponent(searchQuery)}` : ""}`}
                 className="text-sm text-amber-700 hover:underline"
               >
                 ← 前へ
@@ -238,7 +270,7 @@ export default async function Home({
             </span>
             {page < totalPages ? (
               <Link
-                href={`/?page=${page + 1}`}
+                href={`/?page=${page + 1}${searchQuery ? `&q=${encodeURIComponent(searchQuery)}` : ""}`}
                 className="text-sm text-amber-700 hover:underline"
               >
                 次へ →

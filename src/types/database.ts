@@ -29,6 +29,17 @@ export interface Story {
   shop?: Shop
 }
 
+export interface Comment {
+  id: string
+  story_id: string
+  user_id: string
+  parent_id: string | null
+  author_name: string
+  content: string
+  created_at: string
+  updated_at: string
+}
+
 export interface Database {
   public: {
     Tables: {
@@ -41,6 +52,11 @@ export interface Database {
         Row: Story
         Insert: Omit<Story, 'id' | 'created_at' | 'reactions_visit' | 'reactions_touched' | 'reactions_warm'>
         Update: Partial<Omit<Story, 'id' | 'created_at'>>
+      }
+      comments: {
+        Row: Comment
+        Insert: Omit<Comment, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<Comment, 'id' | 'created_at'>>
       }
     }
   }

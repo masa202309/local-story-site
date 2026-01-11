@@ -16,6 +16,7 @@ export default function StoryDetail({ story }: StoryDetailProps) {
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
+      timeZone: "Asia/Tokyo",
     }).replace(/\//g, ".");
   };
   const shopName = story.custom_shop_name || story.shop?.name || "店名不明";

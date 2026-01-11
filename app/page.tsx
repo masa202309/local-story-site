@@ -1,19 +1,23 @@
 import { supabase, Story } from "@/lib/supabase";
 import Link from "next/link";
+import Image from "next/image";
 import Header from "@/components/Header";
 import { ensureSignedStoryImageUrl } from "@/lib/storyImages";
 
 // データ取得
-async function getStories() {
-  const { data, error } = await supabase
+async function getStories(page: number, pageSize: number) {
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+  const { data, error, count } = await supabase
     .from("stories")
-    .select(`*, shops(*)`)
+    .select(`*, shops(*)`, { count: "exact" })
     .eq("published", true)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .range(from, to);
 
   if (error) {
     console.error("Error fetching stories:", error);
-    return [];
+    return { stories: [], total: 0 };
   }
   const stories = (data || []) as Story[];
   const withSignedImages = await Promise.all(
@@ -23,7 +27,7 @@ async function getStories() {
     }))
   );
 
-  return withSignedImages;
+  return { stories: withSignedImages, total: count ?? 0 };
 }
 
 async function getAreas() {
@@ -51,11 +55,24 @@ function getTotalReactions(story: Story) {
 
 export const revalidate = 60; // 60秒ごとに再検証
 
-export default async function Home() {
-  const stories = await getStories();
+export default async function Home({
+  searchParams,
+}: {
+  searchParams?: Promise<{ page?: string | string[] }>;
+}) {
+  const resolvedParams = searchParams ? await searchParams : undefined;
+  const pageParam = Array.isArray(resolvedParams?.page)
+    ? resolvedParams?.page[0]
+    : resolvedParams?.page;
+  const page = Math.max(1, Number.parseInt(pageParam ?? "1", 10) || 1);
+  const pageSize = 10;
+  const { stories, total } = await getStories(page, pageSize);
   const areas = await getAreas();
-  const featuredStory = stories[0]!;
+  const featuredStory = stories[0];
   const featuredShop = featuredStory ? getStoryShop(featuredStory) : null;
+  const totalPages = total > 0 ? Math.ceil(total / pageSize) : 1;
+  const showPagination = totalPages > 1;
+  const hasStories = stories.length > 0;
 
   return (
     <div className="min-h-screen bg-stone-50">
@@ -93,68 +110,87 @@ export default async function Home() {
       <div className="max-w-4xl mx-auto px-4 py-8">
         <h2 className="text-xl font-bold text-gray-900 mb-6">新着ストーリー</h2>
 
-        {stories.length === 0 ? (
+        {!hasStories ? (
           <div className="bg-white rounded-xl p-12 text-center">
-            <p className="text-gray-500 mb-4">まだストーリーがありません</p>
-            <Link
-              href="/post"
-              className="inline-flex items-center gap-2 text-amber-600 hover:underline"
-            >
-              最初のストーリーを書く →
-            </Link>
+            {total === 0 ? (
+              <>
+                <p className="text-gray-500 mb-4">まだストーリーがありません</p>
+                <Link
+                  href="/post"
+                  className="inline-flex items-center gap-2 text-amber-600 hover:underline"
+                >
+                  最初のストーリーを書く →
+                </Link>
+              </>
+            ) : (
+              <p className="text-gray-500">
+                このページにはストーリーがありません
+              </p>
+            )}
           </div>
         ) : (
           <>
             {/* フィーチャーストーリー */}
-            <Link href={`/story/${featuredStory.id}`} className="block mb-6">
-              <article className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition md:flex">
-                <div className="md:w-2/5">
-                  <img
-                    src={featuredStory.image_url || "https://images.unsplash.com/photo-1559925393-8be0ec4767c8?w=800"}
-                    alt={featuredShop?.name || "店舗画像"}
-                    className="w-full h-48 md:h-full object-cover"
-                  />
-                </div>
-                <div className="p-4 md:w-3/5 md:p-6">
-                  <div className="flex items-center gap-2 text-xs text-amber-600 mb-2">
-                    <span className="bg-amber-100 px-2 py-0.5 rounded">
-                      {featuredShop?.area}
-                    </span>
-                    <span>{featuredShop?.genre}</span>
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">
-                    {featuredStory.title}
-                  </h3>
-                  <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                    {featuredStory.excerpt}
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-xs text-gray-500">
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                      </svg>
-                      <span>{featuredShop?.name}</span>
+            {featuredStory && (
+              <Link href={`/story/${featuredStory.id}`} className="block mb-6">
+                <article className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition md:flex">
+                  <div className="md:w-2/5">
+                    <div className="relative w-full h-48 md:h-full overflow-hidden">
+                      <Image
+                        src={featuredStory.image_url || "https://images.unsplash.com/photo-1559925393-8be0ec4767c8?w=800"}
+                        alt={featuredShop?.name || "店舗画像"}
+                        fill
+                        sizes="(max-width: 768px) 100vw, 40vw"
+                        className="object-cover"
+                        priority
+                      />
                     </div>
-                    <div className="flex items-center gap-3 text-xs text-gray-400">
-                      <span className="flex items-center gap-1">
-                        ❤️ {getTotalReactions(featuredStory)}
+                  </div>
+                  <div className="p-4 md:w-3/5 md:p-6">
+                    <div className="flex items-center gap-2 text-xs text-amber-600 mb-2">
+                      <span className="bg-amber-100 px-2 py-0.5 rounded">
+                        {featuredShop?.area}
                       </span>
+                      <span>{featuredShop?.genre}</span>
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">
+                      {featuredStory.title}
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                      {featuredStory.excerpt}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                        <span>{featuredShop?.name}</span>
+                      </div>
+                      <div className="flex items-center gap-3 text-xs text-gray-400">
+                        <span className="flex items-center gap-1">
+                          ❤️ {getTotalReactions(featuredStory)}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </article>
-            </Link>
+                </article>
+              </Link>
+            )}
 
             {/* グリッド */}
             <div className="grid md:grid-cols-2 gap-4">
               {stories.slice(1).map((story) => (
                 <Link key={story.id} href={`/story/${story.id}`}>
                   <article className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition cursor-pointer h-full">
-                    <img
-                      src={story.image_url || "https://images.unsplash.com/photo-1559925393-8be0ec4767c8?w=800"}
-                      alt={getStoryShop(story).name || "店舗画像"}
-                      className="w-full h-40 object-cover"
-                    />
+                    <div className="relative w-full h-40 overflow-hidden">
+                      <Image
+                        src={story.image_url || "https://images.unsplash.com/photo-1559925393-8be0ec4767c8?w=800"}
+                        alt={getStoryShop(story).name || "店舗画像"}
+                        fill
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                        className="object-cover"
+                      />
+                    </div>
                     <div className="p-4">
                       <div className="flex items-center gap-2 text-xs text-amber-600 mb-2">
                         <span className="bg-amber-100 px-2 py-0.5 rounded">
@@ -183,6 +219,34 @@ export default async function Home() {
               ))}
             </div>
           </>
+        )}
+
+        {showPagination && (
+          <div className="flex items-center justify-center gap-4 mt-8">
+            {page > 1 ? (
+              <Link
+                href={`/?page=${page - 1}`}
+                className="text-sm text-amber-700 hover:underline"
+              >
+                ← 前へ
+              </Link>
+            ) : (
+              <span className="text-sm text-gray-400">← 前へ</span>
+            )}
+            <span className="text-sm text-gray-500">
+              {page} / {totalPages}
+            </span>
+            {page < totalPages ? (
+              <Link
+                href={`/?page=${page + 1}`}
+                className="text-sm text-amber-700 hover:underline"
+              >
+                次へ →
+              </Link>
+            ) : (
+              <span className="text-sm text-gray-400">次へ →</span>
+            )}
+          </div>
         )}
       </div>
 

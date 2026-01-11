@@ -8,23 +8,30 @@ try {
   // ignore
 }
 
+const remotePatterns = [
+  ...(supabaseHostname
+    ? [
+        {
+          protocol: "https",
+          hostname: supabaseHostname,
+          pathname: "/storage/v1/object/public/**",
+        },
+        {
+          protocol: "https",
+          hostname: supabaseHostname,
+          pathname: "/storage/v1/object/sign/**",
+        },
+      ]
+    : []),
+  {
+    protocol: "https",
+    hostname: "images.unsplash.com",
+    pathname: "/**",
+  },
+];
+
 const nextConfig: NextConfig = {
-  images: supabaseHostname
-    ? {
-        remotePatterns: [
-          {
-            protocol: "https",
-            hostname: supabaseHostname,
-            pathname: "/storage/v1/object/public/**",
-          },
-          {
-            protocol: "https",
-            hostname: supabaseHostname,
-            pathname: "/storage/v1/object/sign/**",
-          },
-        ],
-      }
-    : undefined,
+  images: remotePatterns.length ? { remotePatterns } : undefined,
 };
 
 export default nextConfig;

@@ -1,8 +1,10 @@
-import { supabase, Story } from "@/lib/supabase";
+import { supabase, Story, Comment } from "@/lib/supabase";
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ReactionButtons } from "@/components/ReactionButtons";
 import { ensureSignedStoryImageUrl } from "@/lib/storyImages";
+import CommentSection from "@/components/CommentSection";
 
 async function getStory(id: string) {
   const { data, error } = await supabase
@@ -19,6 +21,17 @@ async function getStory(id: string) {
   };
 }
 
+async function getComments(storyId: string): Promise<Comment[]> {
+  const { data, error } = await supabase
+    .from("comments")
+    .select("id, story_id, user_id, parent_id, author_name, content, created_at, updated_at")
+    .eq("story_id", storyId)
+    .order("created_at", { ascending: false });
+
+  if (error || !data) return [];
+  return data as Comment[];
+}
+
 export default async function StoryPage({
   params,
 }: {
@@ -31,10 +44,13 @@ export default async function StoryPage({
     notFound();
   }
 
+  const comments = await getComments(id);
+
   const formattedDate = new Date(story.created_at).toLocaleDateString("ja-JP", {
     year: "numeric",
     month: "long",
     day: "numeric",
+    timeZone: "Asia/Tokyo",
   });
   const shopName = story.custom_shop_name || story.shops?.name || "";
   const shopArea = story.custom_area || story.shops?.area || "";
@@ -69,11 +85,16 @@ export default async function StoryPage({
         </Link>
 
         {/* メイン画像 */}
-        <img
-          src={story.image_url || "/placeholder.jpg"}
-          alt={shopName || "店舗画像"}
-          className="w-full h-64 object-cover rounded-xl mb-6"
-        />
+        <div className="relative w-full h-64 overflow-hidden rounded-xl mb-6">
+          <Image
+            src={story.image_url || "/placeholder.jpg"}
+            alt={shopName || "店舗画像"}
+            fill
+            sizes="(max-width: 768px) 100vw, 672px"
+            className="object-cover"
+            priority
+          />
+        </div>
 
         {/* タイトル・メタ情報 */}
         <div className="mb-6">
@@ -122,13 +143,15 @@ export default async function StoryPage({
             {shopName || "店名未登録"}
           </h3>
           <div className="text-sm text-gray-600 space-y-2">
-            <p className="flex items-center gap-2">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              {story.shops?.address || "住所未登録"}
-            </p>
+            {story.shops?.address && (
+              <p className="flex items-center gap-2">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                {story.shops.address}
+              </p>
+            )}
             {story.shop_url && (
               <p className="flex items-center gap-2">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -147,21 +170,9 @@ export default async function StoryPage({
           </div>
         </div>
 
-        {/* シェアボタン */}
-        <div className="flex items-center justify-center gap-4 mt-8">
-          <button className="flex items-center gap-2 px-6 py-3 border border-gray-200 rounded-full text-sm hover:bg-gray-50 transition">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-            </svg>
-            シェア
-          </button>
-          <button className="flex items-center gap-2 px-6 py-3 border border-gray-200 rounded-full text-sm hover:bg-gray-50 transition">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-            </svg>
-            保存
-          </button>
-        </div>
+        <CommentSection storyId={story.id} initialComments={comments} />
+
+        {/* シェア・保存ボタンは非表示 */}
       </div>
 
       {/* フッター */}

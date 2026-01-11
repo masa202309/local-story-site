@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { supabase, Story } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { ensureSignedStoryImageUrl } from '@/lib/storyImages';
@@ -187,9 +188,11 @@ export default function MyPage() {
                     )}
                   </div>
                   {story.image_url && (
-                    <img
+                    <Image
                       src={story.image_url}
                       alt=""
+                      width={80}
+                      height={80}
                       className="w-20 h-20 object-cover rounded-lg"
                     />
                   )}

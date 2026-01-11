@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase, Shop } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
@@ -386,11 +387,16 @@ export default function EditPostPage() {
             </p>
             {(imagePreviewUrl || imageUrl) && !removeImage && (
               <div className="mt-3">
-                <img
-                  src={imagePreviewUrl || imageUrl}
-                  alt="画像プレビュー"
-                  className="w-full max-h-64 object-cover rounded-lg border border-gray-100"
-                />
+                <div className="relative w-full h-64 overflow-hidden rounded-lg border border-gray-100">
+                  <Image
+                    src={imagePreviewUrl || imageUrl}
+                    alt="画像プレビュー"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 640px"
+                    className="object-cover"
+                    unoptimized={Boolean(imagePreviewUrl)}
+                  />
+                </div>
                 <div className="mt-2 flex items-center gap-4">
                   <button
                     type="button"

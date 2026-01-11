@@ -38,6 +38,17 @@ export type Story = {
   shops?: Shop;
 };
 
+export type Comment = {
+  id: string;
+  story_id: string;
+  user_id: string;
+  parent_id: string | null;
+  author_name: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+};
+
 // 認証ヘルパー関数
 export async function signUp(email: string, password: string) {
   const { data, error } = await supabase.auth.signUp({

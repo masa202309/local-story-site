@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { supabase, Shop } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { uploadStoryImage } from '@/lib/storyImages';
@@ -325,11 +326,16 @@ export default function PostPage() {
             </p>
             {imagePreviewUrl && (
               <div className="mt-3">
-                <img
-                  src={imagePreviewUrl}
-                  alt="選択中の画像プレビュー"
-                  className="w-full max-h-64 object-cover rounded-lg border border-gray-100"
-                />
+                <div className="relative w-full h-64 overflow-hidden rounded-lg border border-gray-100">
+                  <Image
+                    src={imagePreviewUrl}
+                    alt="選択中の画像プレビュー"
+                    fill
+                    sizes="(max-width: 768px) 100vw, 640px"
+                    className="object-cover"
+                    unoptimized
+                  />
+                </div>
                 <button
                   type="button"
                   onClick={() => setImageFile(null)}

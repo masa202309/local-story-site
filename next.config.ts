@@ -12,19 +12,19 @@ const remotePatterns = [
   ...(supabaseHostname
     ? [
         {
-          protocol: "https",
+          protocol: "https" as const,
           hostname: supabaseHostname,
           pathname: "/storage/v1/object/public/**",
         },
         {
-          protocol: "https",
+          protocol: "https" as const,
           hostname: supabaseHostname,
           pathname: "/storage/v1/object/sign/**",
         },
       ]
     : []),
   {
-    protocol: "https",
+    protocol: "https" as const,
     hostname: "images.unsplash.com",
     pathname: "/**",
   },

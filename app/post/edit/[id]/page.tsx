@@ -7,6 +7,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { supabase, Shop } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { uploadStoryImage, ensureSignedStoryImageUrl } from '@/lib/storyImages';
+import { fetchIsAdmin } from '@/lib/admin';
 
 export default function EditPostPage() {
   const router = useRouter();
@@ -27,6 +28,7 @@ export default function EditPostPage() {
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string>('');
   const [removeImage, setRemoveImage] = useState(false);
   const [currentPublished, setCurrentPublished] = useState(false);
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
 
   const [pageLoading, setPageLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -59,7 +61,24 @@ export default function EditPostPage() {
   }, [user, authLoading, router]);
 
   useEffect(() => {
-    if (authLoading || !user) return;
+    if (authLoading) return;
+    if (!user) {
+      setIsAdmin(false);
+      return;
+    }
+
+    let active = true;
+    fetchIsAdmin().then((result) => {
+      if (active) setIsAdmin(result);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [authLoading, user]);
+
+  useEffect(() => {
+    if (authLoading || !user || isAdmin === null) return;
     if (!storyId) {
       setError('投稿IDが不正です');
       setPageLoading(false);
@@ -68,12 +87,16 @@ export default function EditPostPage() {
 
     const fetchStory = async () => {
       setPageLoading(true);
-      const { data, error: fetchError } = await supabase
+      let query = supabase
         .from('stories')
         .select('*, shops(*)')
-        .eq('id', storyId)
-        .eq('user_id', user.id)
-        .single();
+        .eq('id', storyId);
+
+      if (!isAdmin) {
+        query = query.eq('user_id', user.id);
+      }
+
+      const { data, error: fetchError } = await query.single();
 
       if (fetchError || !data) {
         setError('投稿を読み込めませんでした。権限がないか、削除されている可能性があります。');
@@ -97,7 +120,7 @@ export default function EditPostPage() {
     };
 
     fetchStory();
-  }, [authLoading, user, storyId]);
+  }, [authLoading, user, storyId, isAdmin]);
 
   const generateExcerpt = (text: string) => {
     const firstParagraph = text.split('\n\n')[0];
@@ -129,7 +152,7 @@ export default function EditPostPage() {
       setError('お店紹介URLはhttp/httpsで入力してください');
       return;
     }
-    if (!storyId || !user) {
+    if (!storyId || !user || isAdmin === null) {
       setError('投稿情報が取得できませんでした');
       return;
     }
@@ -152,7 +175,7 @@ export default function EditPostPage() {
           shop.genre === trimmedGenre
       );
 
-      const { error: updateError } = await supabase
+      let updateQuery = supabase
         .from('stories')
         .update({
           shop_id: matchedShop?.id ?? null,
@@ -167,12 +190,18 @@ export default function EditPostPage() {
           shop_url: trimmedShopUrl || null,
           published: nextPublished,
         })
-        .eq('id', storyId)
-        .eq('user_id', user.id);
+        .eq('id', storyId);
+
+      if (!isAdmin) {
+        updateQuery = updateQuery.eq('user_id', user.id);
+      }
+
+      const { error: updateError } = await updateQuery;
 
       if (updateError) throw updateError;
 
-      router.push(nextPublished ? `/story/${storyId}` : '/mypage');
+      const nextPath = isAdmin ? '/admin' : nextPublished ? `/story/${storyId}` : '/mypage';
+      router.push(nextPath);
       router.refresh();
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'エラーが発生しました';
@@ -182,7 +211,7 @@ export default function EditPostPage() {
     }
   };
 
-  if (authLoading || pageLoading) {
+  if (authLoading || pageLoading || isAdmin === null) {
     return (
       <div className="min-h-screen bg-stone-50 flex items-center justify-center">
         <p className="text-gray-500">読み込み中...</p>
@@ -208,10 +237,10 @@ export default function EditPostPage() {
               </div>
             </Link>
             <Link
-              href="/mypage"
+              href={isAdmin ? '/admin' : '/mypage'}
               className="flex items-center gap-1 text-sm text-gray-600 hover:text-amber-600"
             >
-              ← マイページに戻る
+              ← {isAdmin ? '管理ページ' : 'マイページ'}に戻る
             </Link>
           </div>
         </div>

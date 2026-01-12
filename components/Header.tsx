@@ -3,16 +3,36 @@
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
-import { useState } from 'react';
+import { fetchIsAdmin } from '@/lib/admin';
+import { useEffect, useState } from 'react';
 
 export default function Header() {
   const { user, loading } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     setMenuOpen(false);
+    setIsAdmin(false);
   };
+
+  useEffect(() => {
+    let active = true;
+    if (loading) return;
+    if (!user) {
+      setIsAdmin(false);
+      return;
+    }
+
+    fetchIsAdmin().then((result) => {
+      if (active) setIsAdmin(result);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [user, loading]);
 
   return (
     <header className="bg-amber-50 border-b border-amber-200">
@@ -60,6 +80,15 @@ export default function Header() {
                       >
                         マイページ
                       </Link>
+                      {isAdmin && (
+                        <Link
+                          href="/admin"
+                          className="block px-4 py-2 text-sm text-amber-700 hover:bg-gray-100 font-medium"
+                          onClick={() => setMenuOpen(false)}
+                        >
+                          管理ページ
+                        </Link>
+                      )}
                       <button
                         onClick={handleSignOut}
                         className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"

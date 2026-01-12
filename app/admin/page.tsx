@@ -14,7 +14,7 @@ type CommentWithStory = Comment & {
   stories?: {
     id: string;
     title: string | null;
-  } | null;
+  }[] | null;
 };
 
 const formatDate = (value: string) =>
@@ -144,10 +144,11 @@ export default function AdminPage() {
     const query = commentQuery.trim().toLowerCase();
     if (!query) return comments;
     return comments.filter((comment) => {
+      const storyTitle = comment.stories?.[0]?.title || '';
       const haystack = [
         comment.author_name,
         comment.content,
-        comment.stories?.title || '',
+        storyTitle,
         comment.story_id,
         comment.user_id,
       ];
@@ -412,43 +413,46 @@ export default function AdminPage() {
               </div>
             ) : (
               <div className="space-y-4">
-                {filteredComments.map((comment) => (
-                  <div key={comment.id} className="bg-white rounded-xl p-5 shadow-sm">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex flex-wrap items-center gap-2 text-xs text-gray-400 mb-2">
-                          <span>{formatDate(comment.created_at)}</span>
-                          {comment.parent_id && (
-                            <span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded">
-                              返信
-                            </span>
+                {filteredComments.map((comment) => {
+                  const story = comment.stories?.[0];
+                  return (
+                    <div key={comment.id} className="bg-white rounded-xl p-5 shadow-sm">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="flex flex-wrap items-center gap-2 text-xs text-gray-400 mb-2">
+                            <span>{formatDate(comment.created_at)}</span>
+                            {comment.parent_id && (
+                              <span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded">
+                                返信
+                              </span>
+                            )}
+                            <span>投稿ID: {comment.story_id}</span>
+                          </div>
+                          <p className="text-sm text-gray-700 whitespace-pre-line">
+                            {comment.content}
+                          </p>
+                          <p className="text-xs text-gray-400 mt-2">
+                            投稿者: {comment.author_name} / {comment.user_id}
+                          </p>
+                          {story?.title && (
+                            <Link
+                              href={`/story/${comment.story_id}`}
+                              className="inline-block mt-2 text-xs text-amber-600 hover:underline"
+                            >
+                              作品: {story.title}
+                            </Link>
                           )}
-                          <span>投稿ID: {comment.story_id}</span>
                         </div>
-                        <p className="text-sm text-gray-700 whitespace-pre-line">
-                          {comment.content}
-                        </p>
-                        <p className="text-xs text-gray-400 mt-2">
-                          投稿者: {comment.author_name} / {comment.user_id}
-                        </p>
-                        {comment.stories?.title && (
-                          <Link
-                            href={`/story/${comment.story_id}`}
-                            className="inline-block mt-2 text-xs text-amber-600 hover:underline"
-                          >
-                            作品: {comment.stories.title}
-                          </Link>
-                        )}
+                        <button
+                          onClick={() => handleCommentDelete(comment.id)}
+                          className="text-xs text-red-500 hover:text-red-600"
+                        >
+                          削除
+                        </button>
                       </div>
-                      <button
-                        onClick={() => handleCommentDelete(comment.id)}
-                        className="text-xs text-red-500 hover:text-red-600"
-                      >
-                        削除
-                      </button>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </section>

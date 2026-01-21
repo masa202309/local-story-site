@@ -27,7 +27,8 @@ export default function LoginPage() {
           password,
         });
         if (error) throw error;
-        setMessage('確認メールを送信しました。メールを確認してください。');
+        router.push('/signup/complete');
+        router.refresh();
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,

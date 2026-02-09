@@ -60,6 +60,14 @@ export default function Header() {
               </svg>
               投稿する（無料）
             </Link>
+            <a
+              href="https://gemini.google.com/gem/1mAVX1NtCDpQGD-Y8JtMWTCpszrOC4ssc?usp=sharing"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 border border-amber-200 text-amber-900 px-4 py-2 rounded-full text-sm font-medium hover:bg-amber-50 transition"
+            >
+              投稿支援ツール
+            </a>
             {loading ? (
               <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse" />
             ) : user ? (

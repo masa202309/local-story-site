@@ -64,54 +64,141 @@ export default function Header() {
               href="https://gemini.google.com/gem/1mAVX1NtCDpQGD-Y8JtMWTCpszrOC4ssc?usp=sharing"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1 border border-amber-200 text-amber-900 px-4 py-2 rounded-full text-sm font-medium hover:bg-amber-50 transition"
+              className="hidden md:flex items-center gap-1 border border-amber-200 text-amber-900 px-4 py-2 rounded-full text-sm font-medium hover:bg-amber-50 transition"
             >
               投稿支援ツール
             </a>
             {loading ? (
               <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse" />
             ) : user ? (
-              <div className="relative">
-                <button
-                  onClick={() => setMenuOpen(!menuOpen)}
-                  className="w-9 h-9 rounded-full bg-amber-200 text-amber-800 flex items-center justify-center font-medium hover:bg-amber-300 transition"
-                >
-                  {user.email?.charAt(0).toUpperCase()}
-                </button>
-                {menuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50">
-                    <Link
-                      href="/mypage"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      onClick={() => setMenuOpen(false)}
-                    >
-                      マイページ
-                    </Link>
-                    {isAdmin && (
+              <>
+                <div className="relative hidden md:block">
+                  <button
+                    onClick={() => setMenuOpen(!menuOpen)}
+                    className="w-9 h-9 rounded-full bg-amber-200 text-amber-800 flex items-center justify-center font-medium hover:bg-amber-300 transition"
+                    aria-haspopup="menu"
+                    aria-expanded={menuOpen}
+                  >
+                    {user.email?.charAt(0).toUpperCase()}
+                  </button>
+                  {menuOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50">
                       <Link
-                        href="/admin"
-                        className="block px-4 py-2 text-sm text-amber-700 hover:bg-gray-100 font-medium"
+                        href="/mypage"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         onClick={() => setMenuOpen(false)}
                       >
-                        管理ページ
+                        マイページ
                       </Link>
-                    )}
-                    <button
-                      onClick={handleSignOut}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      ログアウト
-                    </button>
-                  </div>
-                )}
-              </div>
+                      {isAdmin && (
+                        <Link
+                          href="/admin"
+                          className="block px-4 py-2 text-sm text-amber-700 hover:bg-gray-100 font-medium"
+                          onClick={() => setMenuOpen(false)}
+                        >
+                          管理ページ
+                        </Link>
+                      )}
+                      <button
+                        onClick={handleSignOut}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        ログアウト
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <div className="relative md:hidden">
+                  <button
+                    onClick={() => setMenuOpen(!menuOpen)}
+                    className="w-9 h-9 rounded-full border border-amber-200 text-amber-800 flex items-center justify-center hover:bg-amber-50 transition"
+                    aria-label="メニューを開く"
+                    aria-haspopup="menu"
+                    aria-expanded={menuOpen}
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                  </button>
+                  {menuOpen && (
+                    <div className="absolute right-0 mt-2 w-52 bg-white rounded-lg shadow-lg py-2 z-50">
+                      <a
+                        href="https://gemini.google.com/gem/1mAVX1NtCDpQGD-Y8JtMWTCpszrOC4ssc?usp=sharing"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        投稿支援ツール
+                      </a>
+                      <Link
+                        href="/mypage"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        マイページ
+                      </Link>
+                      {isAdmin && (
+                        <Link
+                          href="/admin"
+                          className="block px-4 py-2 text-sm text-amber-700 hover:bg-gray-100 font-medium"
+                          onClick={() => setMenuOpen(false)}
+                        >
+                          管理ページ
+                        </Link>
+                      )}
+                      <button
+                        onClick={handleSignOut}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        ログアウト
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </>
             ) : (
-              <Link
-                href="/login"
-                className="flex items-center gap-1 border border-amber-300 text-amber-800 px-4 py-2 rounded-full text-sm font-medium hover:bg-amber-100 transition"
-              >
-                ログイン
-              </Link>
+              <>
+                <Link
+                  href="/login"
+                  className="hidden md:flex items-center gap-1 border border-amber-300 text-amber-800 px-4 py-2 rounded-full text-sm font-medium hover:bg-amber-100 transition"
+                >
+                  ログイン
+                </Link>
+                <div className="relative md:hidden">
+                  <button
+                    onClick={() => setMenuOpen(!menuOpen)}
+                    className="w-9 h-9 rounded-full border border-amber-200 text-amber-800 flex items-center justify-center hover:bg-amber-50 transition"
+                    aria-label="メニューを開く"
+                    aria-haspopup="menu"
+                    aria-expanded={menuOpen}
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                  </button>
+                  {menuOpen && (
+                    <div className="absolute right-0 mt-2 w-52 bg-white rounded-lg shadow-lg py-2 z-50">
+                      <a
+                        href="https://gemini.google.com/gem/1mAVX1NtCDpQGD-Y8JtMWTCpszrOC4ssc?usp=sharing"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        投稿支援ツール
+                      </a>
+                      <Link
+                        href="/login"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        ログイン
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              </>
             )}
           </div>
         </div>

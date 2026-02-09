@@ -51,58 +51,56 @@ export default function Header() {
           </Link>
 
           <div className="flex items-center gap-3">
+            <Link
+              href="/post"
+              className="flex items-center gap-1 bg-amber-600 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-amber-700 transition"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              </svg>
+              投稿する（無料）
+            </Link>
             {loading ? (
               <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse" />
             ) : user ? (
-              <>
-                <Link
-                  href="/post"
-                  className="flex items-center gap-1 bg-amber-600 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-amber-700 transition"
+              <div className="relative">
+                <button
+                  onClick={() => setMenuOpen(!menuOpen)}
+                  className="w-9 h-9 rounded-full bg-amber-200 text-amber-800 flex items-center justify-center font-medium hover:bg-amber-300 transition"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                  </svg>
-                  書く
-                </Link>
-                <div className="relative">
-                  <button
-                    onClick={() => setMenuOpen(!menuOpen)}
-                    className="w-9 h-9 rounded-full bg-amber-200 text-amber-800 flex items-center justify-center font-medium hover:bg-amber-300 transition"
-                  >
-                    {user.email?.charAt(0).toUpperCase()}
-                  </button>
-                  {menuOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50">
+                  {user.email?.charAt(0).toUpperCase()}
+                </button>
+                {menuOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50">
+                    <Link
+                      href="/mypage"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      マイページ
+                    </Link>
+                    {isAdmin && (
                       <Link
-                        href="/mypage"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        href="/admin"
+                        className="block px-4 py-2 text-sm text-amber-700 hover:bg-gray-100 font-medium"
                         onClick={() => setMenuOpen(false)}
                       >
-                        マイページ
+                        管理ページ
                       </Link>
-                      {isAdmin && (
-                        <Link
-                          href="/admin"
-                          className="block px-4 py-2 text-sm text-amber-700 hover:bg-gray-100 font-medium"
-                          onClick={() => setMenuOpen(false)}
-                        >
-                          管理ページ
-                        </Link>
-                      )}
-                      <button
-                        onClick={handleSignOut}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        ログアウト
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </>
+                    )}
+                    <button
+                      onClick={handleSignOut}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      ログアウト
+                    </button>
+                  </div>
+                )}
+              </div>
             ) : (
               <Link
                 href="/login"
-                className="flex items-center gap-1 bg-amber-600 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-amber-700 transition"
+                className="flex items-center gap-1 border border-amber-300 text-amber-800 px-4 py-2 rounded-full text-sm font-medium hover:bg-amber-100 transition"
               >
                 ログイン
               </Link>

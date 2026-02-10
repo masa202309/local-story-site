@@ -3,7 +3,8 @@ import Link from "next/link";
 import Image from "next/image";
 import Header from "@/components/Header";
 import { ensureSignedStoryImageUrl } from "@/lib/storyImages";
-import { SearchForm } from "@/components";
+import { AnnouncementBanner, SearchForm } from "@/components";
+import { fetchAnnouncements } from "@/lib/announcements";
 
 // データ取得
 async function getStories(page: number, pageSize: number, searchQuery?: string) {
@@ -80,6 +81,7 @@ export default async function Home({
   const pageSize = 10;
   const { stories, total } = await getStories(page, pageSize, searchQuery);
   const areas = await getAreas();
+  const announcements = await fetchAnnouncements();
   const featuredStory = stories[0];
   const featuredShop = featuredStory ? getStoryShop(featuredStory) : null;
   const totalPages = total > 0 ? Math.ceil(total / pageSize) : 1;
@@ -118,6 +120,8 @@ export default async function Home({
           <SearchForm />
         </div>
       </div>
+
+      <AnnouncementBanner announcements={announcements} />
 
       {/* ストーリー一覧 */}
       <div className="max-w-4xl mx-auto px-4 py-8">

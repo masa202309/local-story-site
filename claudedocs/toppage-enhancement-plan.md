@@ -198,4 +198,125 @@ export const announcements: Announcement[] = [
 - [ ] 人気ランキングが正しい順序で表示される
 - [ ] 横スクロールがスムーズに動作する
 - [ ] モバイルでも正常に表示される
+
+---
+
+## 告知の入力ガイド（microCMS想定）
+
+非エンジニア向けに、迷わず入力できる最小限の手順です。
+
+### 1) 新規作成
+
+1. microCMSにログイン
+2. コンテンツ「announcements（告知）」を開く
+3. 「新規作成」をクリック
+
+### 2) 必須項目（必ず入力）
+
+| 項目 | 何を書く？ | 例 |
+|------|-----------|-----|
+| message（表示文） | 画面に出す本文。1〜2行で短く。 | 新機能：エリア検索が使えるようになりました |
+| type（種類） | 表示の色とアイコン。迷ったら info。 | info |
+| isActive（表示するか） | 表示するなら ON。止めるなら OFF。 | ON |
+
+### 3) 任意項目（必要なときだけ）
+
+| 項目 | 使うとき | 例 |
+|------|---------|-----|
+| link / linkText | 詳細ページがあるとき | link: /features/area-search, linkText: 詳しく見る |
+| startAt / endAt | 期間を決めたいとき | startAt: 2026-02-01 09:00, endAt: 2026-02-08 23:59 |
+
+### 4) 公開
+
+1. 入力が終わったら「公開」ボタン
+2. 反映まで数十秒〜1分程度待ってから確認
+
+### 5) よくある運用ルール（おすすめ）
+
+- 告知は基本1件だけ `isActive=ON` にする
+- 文言は短く、1リンクまでに絞る
+- 期間を決めるなら `endAt` は必ず入れる
+
+---
+
+## microCMS導入・運用マニュアル（非エンジニア向け）
+
+### A. 事前準備（最初の1回だけ）
+
+1. microCMSにログイン
+2. サービスを作成（このアプリ専用の管理スペース）
+3. API（コンテンツ）を作成
+   - API名: `announcements`
+   - APIタイプ: リスト型（複数件を管理できる）
+4. フィールドを作成
+   - `message`（テキスト）
+   - `type`（セレクト）
+   - `isActive`（真偽/チェックボックス）
+   - `link`（テキスト）
+   - `linkText`（テキスト）
+   - `startAt`（日時）
+   - `endAt`（日時）
+   - `priority`（数値）※複数表示する場合だけ
+5. APIキーを作成（読み取り専用でOK）
+
+### B. 開発者へ渡す情報（必須）
+
+以下の3点を開発者に共有します（公開チャットでは共有しない）。
+
+1. サービスID
+2. エンドポイント名（`announcements`）
+3. APIキー
+
+### C. 日常の運用（告知の作成）
+
+1. microCMSで「announcements」を開く
+2. 「新規作成」をクリック
+3. 必須項目を入力（`message`, `type`, `isActive`）
+4. 必要なら `link`, `linkText`, `startAt`, `endAt` を入力
+5. 「公開」をクリック
+6. 1分ほど待ってからトップページを確認
+
+### D. よくある運用
+
+- 告知を止めたい → `isActive` をOFFにして「更新して公開」
+- 告知を修正 → 内容修正して「更新して公開」
+- 期間を過ぎたら消したい → `endAt` を設定
+
+---
+
+## 開発者向け設定指示書（最低限）
+
+### 1) 環境変数（`.env.local`）
+
+```
+NEXT_PUBLIC_MICROCMS_SERVICE_ID=xxxxxxxx
+MICROCMS_API_KEY=xxxxxxxx
+MICROCMS_ANNOUNCEMENTS_ENDPOINT=announcements
+```
+
+※ `MICROCMS_API_KEY` はサーバー側だけで使う想定。
+
+### 2) データ取得（サーバー側）
+
+`app/page.tsx` で microCMS から告知を取得し、`AnnouncementBanner` に渡す。
+
+```
+// 例: getAnnouncements()
+const res = await fetch(`https://${serviceId}.microcms.io/api/v1/${endpoint}`, {
+  headers: { 'X-MICROCMS-API-KEY': apiKey },
+  next: { revalidate: 60 },
+});
+```
+
+### 3) 表示ロジック（クライアント側）
+
+- `isActive` が true のものだけ表示
+- `startAt` / `endAt` があれば現在時刻でフィルタ
+- 複数表示する場合は `priority` 昇順で並べる
+
+### 4) セキュリティ注意点
+
+- APIキーをクライアントに渡さない
+- 公開リポジトリに `.env.local` を置かない
+
 - [ ] 画像の遅延読み込みが機能している

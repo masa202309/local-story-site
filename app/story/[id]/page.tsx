@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { ReactionButtons } from "@/components/ReactionButtons";
 import { ensureSignedStoryImageUrl } from "@/lib/storyImages";
 import CommentSection from "@/components/CommentSection";
+import { buildMusicRenderModel } from "@/lib/sunoMusic";
 
 async function getStory(id: string) {
   const { data, error } = await supabase
@@ -55,6 +56,9 @@ export default async function StoryPage({
   const shopName = story.custom_shop_name || story.shops?.name || "";
   const shopArea = story.custom_area || story.shops?.area || "";
   const shopGenre = story.custom_genre || story.shops?.genre || "";
+  const musicRenderModel = story.music_url
+    ? await buildMusicRenderModel(story.music_url)
+    : null;
 
   return (
     <div className="min-h-screen bg-stone-50">
@@ -122,17 +126,70 @@ export default async function StoryPage({
             <p key={i} className="text-gray-700 leading-relaxed mb-4">
               {para}
             </p>
-        ))}
-      </div>
+          ))}
+        </div>
 
-      <ReactionButtons
-        storyId={story.id}
-        initialCounts={{
-          visit: story.reactions_visit,
-          touched: story.reactions_touched,
-          warm: story.reactions_warm,
-        }}
-      />
+        {/* イメージ曲 */}
+        {musicRenderModel && (
+          <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-5 mb-8 border border-amber-100">
+            <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+              <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+              </svg>
+              イメージ曲
+            </h3>
+            {musicRenderModel.kind === "embed" && musicRenderModel.embedUrl ? (
+              <div className="space-y-3">
+                <iframe
+                  src={musicRenderModel.embedUrl}
+                  width="100%"
+                  height="150"
+                  style={{ borderRadius: "12px", border: "none" }}
+                  allow="autoplay"
+                  title="SUNO イメージ曲プレーヤー"
+                />
+                <p className="text-xs text-gray-400 text-right">Powered by SUNO</p>
+              </div>
+            ) : musicRenderModel.kind === "audio" && musicRenderModel.audioUrl ? (
+              <div className="space-y-3">
+                <audio controls src={musicRenderModel.audioUrl} className="w-full">
+                  お使いのブラウザは音声再生に対応していません。
+                </audio>
+                {musicRenderModel.provider === "suno" && (
+                  <p className="text-xs text-gray-400 text-right">Powered by SUNO</p>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {musicRenderModel.provider === "suno" && (
+                  <p className="text-xs text-gray-500">
+                    このURLは埋め込み非対応のためSunoで開きます。
+                  </p>
+                )}
+                <a
+                  href={musicRenderModel.externalUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-amber-700 hover:underline text-sm"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                  イメージ曲を聴く
+                </a>
+              </div>
+            )}
+          </div>
+        )}
+
+        <ReactionButtons
+          storyId={story.id}
+          initialCounts={{
+            visit: story.reactions_visit,
+            touched: story.reactions_touched,
+            warm: story.reactions_warm,
+          }}
+        />
 
         {/* 店舗情報 */}
         <div className="bg-amber-50 rounded-xl p-5">

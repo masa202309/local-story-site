@@ -20,6 +20,7 @@ export default function EditPostPage() {
   const [customArea, setCustomArea] = useState('');
   const [customGenre, setCustomGenre] = useState('');
   const [shopUrl, setShopUrl] = useState('');
+  const [musicUrl, setMusicUrl] = useState('');
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [authorName, setAuthorName] = useState('');
@@ -108,6 +109,7 @@ export default function EditPostPage() {
       setCustomArea(data.custom_area || data.shops?.area || '');
       setCustomGenre(data.custom_genre || data.shops?.genre || '');
       setShopUrl(data.shop_url || '');
+      setMusicUrl(data.music_url || '');
       setTitle(data.title);
       setContent(data.content);
       setAuthorName(data.author_name || '');
@@ -143,6 +145,7 @@ export default function EditPostPage() {
     const trimmedArea = customArea.trim();
     const trimmedGenre = customGenre.trim();
     const trimmedShopUrl = shopUrl.trim();
+    const trimmedMusicUrl = musicUrl.trim();
 
     if (!trimmedShopName || !trimmedArea || !trimmedGenre || !title || !content) {
       setError('店名、エリア、ジャンル、タイトル、本文は必須です');
@@ -150,6 +153,10 @@ export default function EditPostPage() {
     }
     if (trimmedShopUrl && !isValidHttpUrl(trimmedShopUrl)) {
       setError('お店紹介URLはhttp/httpsで入力してください');
+      return;
+    }
+    if (trimmedMusicUrl && !isValidHttpUrl(trimmedMusicUrl)) {
+      setError('イメージ曲URLはhttp/httpsで入力してください');
       return;
     }
     if (!storyId || !user || isAdmin === null) {
@@ -188,6 +195,7 @@ export default function EditPostPage() {
           author_name: authorName || '匿名',
           image_url: nextImageUrl,
           shop_url: trimmedShopUrl || null,
+          music_url: trimmedMusicUrl || null,
           published: nextPublished,
         })
         .eq('id', storyId);
@@ -331,6 +339,23 @@ export default function EditPostPage() {
             />
             <p className="text-xs text-gray-500 mt-1">
               URLは http または https から始めてください
+            </p>
+          </div>
+
+          {/* イメージ曲URL */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              🎵 イメージ曲URL <span className="text-gray-400">(任意)</span>
+            </label>
+            <input
+              type="url"
+              value={musicUrl}
+              onChange={(e) => setMusicUrl(e.target.value)}
+              placeholder="https://suno.com/song/xxxxx または https://suno.com/s/xxxxx"
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-transparent"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Sunoの song / s 共有URL、またはmp3直リンクを入力できます
             </p>
           </div>
 

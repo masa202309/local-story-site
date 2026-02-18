@@ -29,6 +29,7 @@ export type Story = {
   author_name: string;
   image_url: string | null;
   shop_url: string | null;
+  music_url: string | null;
   reactions_visit: number;
   reactions_touched: number;
   reactions_warm: number;

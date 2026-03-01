@@ -3,7 +3,27 @@ import Script from "next/script";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 
+function resolveMetadataBase() {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  const vercelUrl = process.env.VERCEL_URL;
+
+  if (siteUrl) {
+    try {
+      return new URL(siteUrl);
+    } catch {
+      // Ignore and fallback below.
+    }
+  }
+
+  if (vercelUrl) {
+    return new URL(`https://${vercelUrl}`);
+  }
+
+  return new URL("http://localhost:3000");
+}
+
 export const metadata: Metadata = {
+  metadataBase: resolveMetadataBase(),
   title: "TABLE NOVEL | ストーリーで巡る、心の地図",
   description: "地元の名店で生まれた思い出を、ショートストーリーで共有するサイト",
 };

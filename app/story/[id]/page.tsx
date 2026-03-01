@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { supabase, Story, Comment } from "@/lib/supabase";
 import Link from "next/link";
 import Image from "next/image";
@@ -5,12 +6,14 @@ import { notFound } from "next/navigation";
 import { ReactionButtons } from "@/components/ReactionButtons";
 import { ensureSignedStoryImageUrl } from "@/lib/storyImages";
 import CommentSection from "@/components/CommentSection";
+import StoryShareButtons from "@/components/StoryShareButtons";
 import { buildMusicRenderModel } from "@/lib/sunoMusic";
 
 async function getStory(id: string) {
   const { data, error } = await supabase
     .from("stories")
     .select(`*, shops(*)`)
+    .eq("published", true)
     .eq("id", id)
     .single();
 
@@ -31,6 +34,75 @@ async function getComments(storyId: string): Promise<Comment[]> {
 
   if (error || !data) return [];
   return data as Comment[];
+}
+
+function buildStoryDescription(story: Story) {
+  const source = (story.excerpt || story.content || "").trim();
+  const normalized = source.replace(/\s+/g, " ");
+  if (normalized.length <= 120) return normalized;
+  return `${normalized.slice(0, 117)}...`;
+}
+
+function resolveShareImageUrl(imageUrl: string | null) {
+  if (!imageUrl) return "/icon.png";
+  if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
+    return imageUrl;
+  }
+  return "/icon.png";
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const story = await getStory(id);
+
+  if (!story) {
+    return {
+      title: "ストーリーが見つかりません | TABLE NOVEL",
+      description: "指定されたストーリーは見つかりませんでした。",
+      robots: {
+        index: false,
+        follow: false,
+      },
+    };
+  }
+
+  const shopName = story.custom_shop_name || story.shops?.name || "TABLE NOVEL";
+  const description = buildStoryDescription(story);
+  const pagePath = `/story/${story.id}`;
+  const shareImage = resolveShareImageUrl(story.image_url);
+
+  return {
+    title: `${story.title} | TABLE NOVEL`,
+    description,
+    alternates: {
+      canonical: pagePath,
+    },
+    openGraph: {
+      type: "article",
+      url: pagePath,
+      title: story.title,
+      description,
+      siteName: "TABLE NOVEL",
+      locale: "ja_JP",
+      publishedTime: story.created_at,
+      images: [
+        {
+          url: shareImage,
+          alt: `${shopName}のストーリー`,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: story.title,
+      description,
+      images: [shareImage],
+    },
+  };
 }
 
 export default async function StoryPage({
@@ -56,6 +128,7 @@ export default async function StoryPage({
   const shopName = story.custom_shop_name || story.shops?.name || "";
   const shopArea = story.custom_area || story.shops?.area || "";
   const shopGenre = story.custom_genre || story.shops?.genre || "";
+  const storyDescription = buildStoryDescription(story);
   const musicRenderModel = story.music_url
     ? await buildMusicRenderModel(story.music_url)
     : null;
@@ -128,6 +201,12 @@ export default async function StoryPage({
             </p>
           ))}
         </div>
+
+        <StoryShareButtons
+          storyId={story.id}
+          title={story.title}
+          description={storyDescription}
+        />
 
         {/* イメージ曲 */}
         {musicRenderModel && (
@@ -228,8 +307,6 @@ export default async function StoryPage({
         </div>
 
         <CommentSection storyId={story.id} initialComments={comments} />
-
-        {/* シェア・保存ボタンは非表示 */}
       </div>
 
       {/* フッター */}

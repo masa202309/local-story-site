@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { BookOpen } from "lucide-react";
 
 export default function Footer() {
@@ -12,9 +13,13 @@ export default function Footer() {
           地元の名店で生まれた物語を集めるプラットフォーム
         </p>
         <div className="flex gap-6 text-sm">
-          <a href="#" className="hover:text-white transition">利用規約</a>
-          <a href="#" className="hover:text-white transition">プライバシー</a>
-          <a href="#" className="hover:text-white transition">お問い合わせ</a>
+          <Link href="/legal/terms" className="hover:text-white transition">
+            利用規約
+          </Link>
+          <Link href="/legal/privacy" className="hover:text-white transition">
+            プライバシーポリシー
+          </Link>
+          <span className="text-amber-300">お問い合わせ（準備中）</span>
         </div>
       </div>
     </footer>

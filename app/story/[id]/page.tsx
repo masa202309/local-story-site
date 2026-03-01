@@ -241,9 +241,17 @@ export default async function StoryPage({
             </svg>
             <span className="font-bold">TABLE NOVEL</span>
           </div>
-          <p className="text-sm text-amber-300">
+          <p className="text-sm text-amber-300 mb-4">
             地元の名店で生まれた物語を集めるプラットフォーム
           </p>
+          <div className="border-t border-amber-800 pt-4 flex items-center gap-6">
+            <Link href="/legal/terms" className="text-xs text-amber-400 hover:text-amber-200 transition">
+              利用規約
+            </Link>
+            <Link href="/legal/privacy" className="text-xs text-amber-400 hover:text-amber-200 transition">
+              プライバシーポリシー
+            </Link>
+          </div>
         </div>
       </footer>
     </div>

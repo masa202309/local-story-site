@@ -6,6 +6,33 @@ import { ensureSignedStoryImageUrl } from "@/lib/storyImages";
 import { AnnouncementBanner, SearchForm } from "@/components";
 import { fetchAnnouncements } from "@/lib/announcements";
 
+type StoryListItem = Story & {
+  hasMusic: boolean;
+  hasComments: boolean;
+};
+
+async function getStoriesWithComments(storyIds: string[]) {
+  if (storyIds.length === 0) {
+    return new Set<string>();
+  }
+
+  const { data, error } = await supabase
+    .from("comments")
+    .select("story_id")
+    .in("story_id", storyIds);
+
+  if (error) {
+    console.error("Error checking comments:", error);
+    return new Set<string>();
+  }
+
+  return new Set(
+    (data || [])
+      .map((row) => row.story_id)
+      .filter((id): id is string => typeof id === "string" && id.length > 0)
+  );
+}
+
 // データ取得
 async function getStories(page: number, pageSize: number, searchQuery?: string) {
   const from = (page - 1) * pageSize;
@@ -30,10 +57,13 @@ async function getStories(page: number, pageSize: number, searchQuery?: string) 
     return { stories: [], total: 0 };
   }
   const stories = (data || []) as Story[];
+  const commentedStoryIds = await getStoriesWithComments(stories.map((story) => story.id));
   const withSignedImages = await Promise.all(
     stories.map(async (story) => ({
       ...story,
       image_url: await ensureSignedStoryImageUrl(story.image_url),
+      hasMusic: Boolean(story.music_url?.trim()),
+      hasComments: commentedStoryIds.has(story.id),
     }))
   );
 
@@ -61,6 +91,27 @@ function getStoryShop(story: Story) {
 
 function getTotalReactions(story: Story) {
   return story.reactions_visit + story.reactions_touched + story.reactions_warm;
+}
+
+function renderStorySignals(story: StoryListItem) {
+  if (!story.hasMusic && !story.hasComments) {
+    return null;
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-2 mb-3">
+      {story.hasMusic && (
+        <span className="inline-flex items-center rounded-full border border-amber-100 bg-amber-50 px-2 py-0.5 text-[11px] text-amber-700">
+          ♪ イメージ曲あり
+        </span>
+      )}
+      {story.hasComments && (
+        <span className="inline-flex items-center rounded-full border border-sky-100 bg-sky-50 px-2 py-0.5 text-[11px] text-sky-700">
+          コメントあり
+        </span>
+      )}
+    </div>
+  );
 }
 
 export const revalidate = 60; // 60秒ごとに再検証
@@ -195,6 +246,7 @@ export default async function Home({
                     <p className="text-sm text-gray-600 mb-3 line-clamp-2">
                       {featuredStory.excerpt}
                     </p>
+                    {renderStorySignals(featuredStory)}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 text-xs text-gray-500">
                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -238,6 +290,7 @@ export default async function Home({
                       <p className="text-sm text-gray-600 mb-3 line-clamp-2">
                         {story.excerpt}
                       </p>
+                      {renderStorySignals(story)}
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 text-xs text-gray-500">
                           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">

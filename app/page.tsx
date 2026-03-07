@@ -8,12 +8,12 @@ import { fetchAnnouncements } from "@/lib/announcements";
 
 type StoryListItem = Story & {
   hasMusic: boolean;
-  hasComments: boolean;
+  commentCount: number;
 };
 
-async function getStoriesWithComments(storyIds: string[]) {
+async function getCommentCounts(storyIds: string[]) {
   if (storyIds.length === 0) {
-    return new Set<string>();
+    return new Map<string, number>();
   }
 
   const { data, error } = await supabase
@@ -23,14 +23,20 @@ async function getStoriesWithComments(storyIds: string[]) {
 
   if (error) {
     console.error("Error checking comments:", error);
-    return new Set<string>();
+    return new Map<string, number>();
   }
 
-  return new Set(
-    (data || [])
-      .map((row) => row.story_id)
-      .filter((id): id is string => typeof id === "string" && id.length > 0)
-  );
+  const counts = new Map<string, number>();
+
+  for (const row of data || []) {
+    if (typeof row.story_id !== "string" || row.story_id.length === 0) {
+      continue;
+    }
+
+    counts.set(row.story_id, (counts.get(row.story_id) ?? 0) + 1);
+  }
+
+  return counts;
 }
 
 // データ取得
@@ -57,13 +63,13 @@ async function getStories(page: number, pageSize: number, searchQuery?: string) 
     return { stories: [], total: 0 };
   }
   const stories = (data || []) as Story[];
-  const commentedStoryIds = await getStoriesWithComments(stories.map((story) => story.id));
+  const commentCounts = await getCommentCounts(stories.map((story) => story.id));
   const withSignedImages = await Promise.all(
     stories.map(async (story) => ({
       ...story,
       image_url: await ensureSignedStoryImageUrl(story.image_url),
       hasMusic: Boolean(story.music_url?.trim()),
-      hasComments: commentedStoryIds.has(story.id),
+      commentCount: commentCounts.get(story.id) ?? 0,
     }))
   );
 
@@ -94,7 +100,7 @@ function getTotalReactions(story: Story) {
 }
 
 function renderStorySignals(story: StoryListItem) {
-  if (!story.hasMusic && !story.hasComments) {
+  if (!story.hasMusic) {
     return null;
   }
 
@@ -103,11 +109,6 @@ function renderStorySignals(story: StoryListItem) {
       {story.hasMusic && (
         <span className="inline-flex items-center rounded-full border border-amber-100 bg-amber-50 px-2 py-0.5 text-[11px] text-amber-700">
           ♪ イメージ曲あり
-        </span>
-      )}
-      {story.hasComments && (
-        <span className="inline-flex items-center rounded-full border border-sky-100 bg-sky-50 px-2 py-0.5 text-[11px] text-sky-700">
-          コメントあり
         </span>
       )}
     </div>
@@ -258,6 +259,11 @@ export default async function Home({
                         <span className="flex items-center gap-1">
                           ❤️ {getTotalReactions(featuredStory)}
                         </span>
+                        {featuredStory.commentCount > 0 && (
+                          <span className="flex items-center gap-1">
+                            💬 {featuredStory.commentCount}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -298,9 +304,10 @@ export default async function Home({
                           </svg>
                           <span>{getStoryShop(story).name}</span>
                         </div>
-                        <span className="text-xs text-gray-400">
-                          ❤️ {getTotalReactions(story)}
-                        </span>
+                        <div className="flex items-center gap-3 text-xs text-gray-400">
+                          <span>❤️ {getTotalReactions(story)}</span>
+                          {story.commentCount > 0 && <span>💬 {story.commentCount}</span>}
+                        </div>
                       </div>
                     </div>
                   </article>

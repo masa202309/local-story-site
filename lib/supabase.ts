@@ -33,6 +33,7 @@ export type Story = {
   reactions_visit: number;
   reactions_touched: number;
   reactions_warm: number;
+  preview_count: number;
   published: boolean;
   created_at: string;
   user_id: string | null;

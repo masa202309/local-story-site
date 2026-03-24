@@ -257,6 +257,9 @@ export default async function Home({
                       </div>
                       <div className="flex items-center gap-3 text-xs text-gray-400">
                         <span className="flex items-center gap-1">
+                          👁 {featuredStory.preview_count ?? 0}
+                        </span>
+                        <span className="flex items-center gap-1">
                           ❤️ {getTotalReactions(featuredStory)}
                         </span>
                         {featuredStory.commentCount > 0 && (
@@ -305,6 +308,7 @@ export default async function Home({
                           <span>{getStoryShop(story).name}</span>
                         </div>
                         <div className="flex items-center gap-3 text-xs text-gray-400">
+                          <span>👁 {story.preview_count ?? 0}</span>
                           <span>❤️ {getTotalReactions(story)}</span>
                           {story.commentCount > 0 && <span>💬 {story.commentCount}</span>}
                         </div>

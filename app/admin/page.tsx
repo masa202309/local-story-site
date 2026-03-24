@@ -26,6 +26,9 @@ const getStoryShop = (story: Story) => ({
   genre: story.custom_genre || story.shops?.genre || 'ジャンル未登録',
 });
 
+const getTotalReactions = (story: Story) =>
+  story.reactions_visit + story.reactions_touched + story.reactions_warm;
+
 const includesQuery = (value: string, query: string) =>
   value.toLowerCase().includes(query);
 
@@ -334,6 +337,10 @@ export default function AdminPage() {
                           <p className="text-xs text-gray-400 mt-1">
                             投稿者: {story.author_name || '匿名'} / {story.user_id || '不明'}
                           </p>
+                          <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-gray-500">
+                            <span>👁 {story.preview_count ?? 0}</span>
+                            <span>❤️ {getTotalReactions(story)}</span>
+                          </div>
                         </div>
                         {story.image_url && (
                           <Image

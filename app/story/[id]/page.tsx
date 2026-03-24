@@ -8,6 +8,7 @@ import { ensureSignedStoryImageUrl } from "@/lib/storyImages";
 import CommentSection from "@/components/CommentSection";
 import StoryShareButtons from "@/components/StoryShareButtons";
 import { buildMusicRenderModel } from "@/lib/sunoMusic";
+import StoryPreviewTracker from "@/components/StoryPreviewTracker";
 
 async function getStory(id: string) {
   const { data, error } = await supabase
@@ -182,7 +183,7 @@ export default async function StoryPage({
             <span>{shopGenre}</span>
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-3">{story.title}</h1>
-          <div className="flex items-center gap-4 text-sm text-gray-500">
+          <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
             <span>by {story.author_name}</span>
             <span className="flex items-center gap-1">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -190,6 +191,11 @@ export default async function StoryPage({
               </svg>
               {formattedDate}
             </span>
+            <StoryPreviewTracker
+              key={story.id}
+              storyId={story.id}
+              initialCount={story.preview_count ?? 0}
+            />
           </div>
         </div>
 

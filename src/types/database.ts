@@ -25,6 +25,7 @@ export interface Story {
   reactions_visit: number
   reactions_touched: number
   reactions_warm: number
+  preview_count: number
   published: boolean
   created_at: string
   shop?: Shop
@@ -51,7 +52,7 @@ export interface Database {
       }
       stories: {
         Row: Story
-        Insert: Omit<Story, 'id' | 'created_at' | 'reactions_visit' | 'reactions_touched' | 'reactions_warm'>
+        Insert: Omit<Story, 'id' | 'created_at' | 'reactions_visit' | 'reactions_touched' | 'reactions_warm' | 'preview_count'>
         Update: Partial<Omit<Story, 'id' | 'created_at'>>
       }
       comments: {

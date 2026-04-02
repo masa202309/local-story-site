@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Eye } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 const SESSION_STORAGE_KEY = "table-novel-session-id";
@@ -112,10 +113,7 @@ export default function StoryPreviewTracker({
 
   return (
     <span className={className ?? "flex items-center gap-1"}>
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.065 7-9.542 7S3.732 16.057 2.458 12z" />
-      </svg>
+      <Eye className="w-4 h-4" aria-hidden="true" />
       {new Intl.NumberFormat("ja-JP").format(previewCount)}
     </span>
   );

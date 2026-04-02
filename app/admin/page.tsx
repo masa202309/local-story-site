@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { Eye } from 'lucide-react';
 import Header from '@/components/Header';
 import { supabase, Story, Comment } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
@@ -338,7 +339,10 @@ export default function AdminPage() {
                             投稿者: {story.author_name || '匿名'} / {story.user_id || '不明'}
                           </p>
                           <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-gray-500">
-                            <span>👁 {story.preview_count ?? 0}</span>
+                            <span className="flex items-center gap-1">
+                              <Eye className="h-3.5 w-3.5" />
+                              {story.preview_count ?? 0}
+                            </span>
                             <span>❤️ {getTotalReactions(story)}</span>
                           </div>
                         </div>

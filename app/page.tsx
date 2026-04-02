@@ -1,6 +1,7 @@
 import { supabase, Story } from "@/lib/supabase";
 import Link from "next/link";
 import Image from "next/image";
+import { Eye } from "lucide-react";
 import Header from "@/components/Header";
 import { ensureSignedStoryImageUrl } from "@/lib/storyImages";
 import { AnnouncementBanner, SearchForm } from "@/components";
@@ -255,12 +256,13 @@ export default async function Home({
                         </svg>
                         <span>{featuredShop?.name}</span>
                       </div>
-                      <div className="flex items-center gap-3 text-xs text-gray-400">
-                        <span className="flex items-center gap-1">
-                          👁 {featuredStory.preview_count ?? 0}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          ❤️ {getTotalReactions(featuredStory)}
+                        <div className="flex items-center gap-3 text-xs text-gray-400">
+                          <span className="flex items-center gap-1">
+                            <Eye className="h-3.5 w-3.5" />
+                            {featuredStory.preview_count ?? 0}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            ❤️ {getTotalReactions(featuredStory)}
                         </span>
                         {featuredStory.commentCount > 0 && (
                           <span className="flex items-center gap-1">
@@ -308,7 +310,10 @@ export default async function Home({
                           <span>{getStoryShop(story).name}</span>
                         </div>
                         <div className="flex items-center gap-3 text-xs text-gray-400">
-                          <span>👁 {story.preview_count ?? 0}</span>
+                          <span className="flex items-center gap-1">
+                            <Eye className="h-3.5 w-3.5" />
+                            {story.preview_count ?? 0}
+                          </span>
                           <span>❤️ {getTotalReactions(story)}</span>
                           {story.commentCount > 0 && <span>💬 {story.commentCount}</span>}
                         </div>

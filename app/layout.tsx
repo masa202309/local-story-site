@@ -25,7 +25,7 @@ function resolveMetadataBase() {
 export const metadata: Metadata = {
   metadataBase: resolveMetadataBase(),
   title: "TABLE NOVEL | ストーリーで巡る、心の地図",
-  description: "地元の名店で生まれた思い出を、ショートストーリーで共有するサイト",
+  description: "地元の名店を舞台に、レストラン短編小説・飲食店短編小説・グルメ短編小説を投稿・共有する物語プラットフォーム",
 };
 
 export default function RootLayout({

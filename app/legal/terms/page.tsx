@@ -140,7 +140,7 @@ export default function TermsPage() {
             <span className="font-bold">TABLE NOVEL</span>
           </div>
           <p className="text-sm text-amber-300 mb-4">
-            地元の名店で生まれた物語を集めるプラットフォーム
+            地元の名店を舞台にした短編小説を投稿・共有する物語プラットフォーム
           </p>
           <div className="border-t border-amber-800 pt-4 flex items-center gap-6">
             <Link href="/legal/terms" className="text-xs text-amber-400 hover:text-amber-200 transition">

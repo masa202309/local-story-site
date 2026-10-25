@@ -10,7 +10,7 @@ export default function Footer() {
           <span className="font-bold">TABLE NOVEL</span>
         </div>
         <p className="text-sm text-amber-300 mb-6">
-          地元の名店で生まれた物語を集めるプラットフォーム
+          地元の名店を舞台にした短編小説を投稿・共有する物語プラットフォーム
         </p>
         <div className="flex gap-6 text-sm">
           <Link href="/legal/terms" className="hover:text-white transition">
